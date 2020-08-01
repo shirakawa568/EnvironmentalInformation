@@ -7,6 +7,11 @@ class EnterprisesInfoSpider(scrapy.Spider):
     name = 'enterprises_info'
     # allowed_domains = ['xxgk.eic.sh.cn']
     start_urls = ['https://xxgk.eic.sh.cn/jsp/view/list.jsp']
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'EnvironmentalInformation.pipelines.EnvironmentalinformationPipeline': 300,
+        }
+    }
 
     def parse(self, response):
         page_num = response.xpath(r"/html/body/div[@id='wrapper']/div[@class='page']/span[3]/text()").re_first(

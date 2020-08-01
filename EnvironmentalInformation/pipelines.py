@@ -5,11 +5,15 @@
 
 
 # useful for handling different item types with a single interface
+import logging
+
 import pandas
 
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 from common.tools import get_root_path, add_sheet
+
+logger = logging.getLogger(__name__)
 
 
 class EnvironmentalinformationPipeline:
@@ -64,3 +68,65 @@ class EnterprisesDetailPipeline:
         if isinstance(spider, EnterprisesDetailSpider):
             add_sheet(get_root_path('EnvironmentalInformation'), "Enterprises.xlsx", "企业详细信息", self.df)
             print("保存完成")
+
+
+class PollutionInfoPipeline:
+    def __init__(self):
+        self.df_pfk = None
+        self.df_project = None
+        self.df_images = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + "PollutionInfo.xlsx")
+        self.counts = [0, 0, 0]
+        self.item_count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        self.item_count += 1
+        # print(item)
+        # 处理排放口信息
+        if item['dict_pfk'] is not None:
+            if self.df_pfk is None:
+                cols: dict = item['dict_pfk'][0].keys()
+                self.df_pfk = pandas.DataFrame(columns=cols)
+            for col in item['dict_pfk']:
+                s = pandas.Series(col)
+                self.df_pfk = self.df_pfk.append(s, ignore_index=True)
+                self.counts[0] += 1
+            return item
+        # 处理排放项目信息
+        if item['dict_poll_project'] is not None:
+            if self.df_project is None:
+                cols: dict = item['dict_poll_project'][0].keys()
+                self.df_project = pandas.DataFrame(columns=cols)
+            for col in item['dict_poll_project']:
+                s = pandas.Series(col)
+                self.df_project = self.df_project.append(s, ignore_index=True)
+                self.counts[1] += 1
+            return item
+        # 处理厂区图
+        if item['images'] is not None:
+            if self.df_images is None:
+                cols: dict = item['images'][0].keys()
+                self.df_images = pandas.DataFrame(columns=cols)
+            for col in item['images']:
+                s = pandas.Series(col)
+                self.df_images = self.df_images.append(s, ignore_index=True)
+                self.counts[2] += 1
+            return item
+        return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        print(self.counts, self.item_count)
+        # 覆盖保存排放口信息
+        self.df_pfk.to_excel(self.writer, sheet_name='排放口信息', index=False)
+        self.writer.save()
+        # 追加保存排放项目信息
+        if self.df_project is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), "PollutionInfo.xlsx", "排放项目信息", self.df_project)
+        # 追加保存厂区图信息
+        if self.df_images is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), "PollutionInfo.xlsx", "厂区图信息", self.df_images)
+        logger.info("save complete")

@@ -9,6 +9,8 @@
 
 BOT_NAME = 'EnvironmentalInformation'
 
+LOG_LEVEL = 'DEBUG'
+
 SPIDER_MODULES = ['EnvironmentalInformation.spiders']
 NEWSPIDER_MODULE = 'EnvironmentalInformation.spiders'
 
@@ -66,8 +68,7 @@ CONCURRENT_REQUESTS_PER_IP = 4
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     # 'EnvironmentalInformation.pipelines.EnvironmentalinformationPipeline': 300,
-    'EnvironmentalInformation.pipelines.EnterprisesPipeline': 300,
-    'EnvironmentalInformation.pipelines.EnterprisesDetailPipeline': 301,
+    # 'EnvironmentalInformation.pipelines.EnterprisesPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

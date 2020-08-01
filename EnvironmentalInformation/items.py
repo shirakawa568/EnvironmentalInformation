@@ -22,3 +22,10 @@ class EnterprisesItem(scrapy.Item):
 
 class EnterprisesDetailItem(scrapy.Item):
     dict_detail = scrapy.Field()
+
+
+# 排放信息 -
+class PollutionInfoItem(scrapy.Item):
+    dict_pfk = scrapy.Field()
+    dict_poll_project = scrapy.Field()
+    images = scrapy.Field()

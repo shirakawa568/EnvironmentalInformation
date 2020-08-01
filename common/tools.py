@@ -11,17 +11,6 @@ def get_root_path(project_name):
     return root_path
 
 
-def save_sheet(path, file_name, sheet_name):
-    """
-    保存DataFrame到Excel的sheet中
-    :param path:
-    :param file_name:
-    :param sheet_name:
-    :return:
-    """
-    pass
-
-
 def check_sheet(path, file_name, sheet_name):
     excel = pandas.ExcelFile(path + file_name)
     if sheet_name in excel.sheet_names:
@@ -33,6 +22,14 @@ def check_sheet(path, file_name, sheet_name):
 
 
 def add_sheet(path, file_name, sheet_name, dataframe):
+    """
+    对已存在sheet的文件保留原sheet，追加新sheet
+    :param path:
+    :param file_name:
+    :param sheet_name:
+    :param dataframe:
+    :return:
+    """
     # 读取原sheet
     book = load_workbook(path + file_name)
     # 创建writer

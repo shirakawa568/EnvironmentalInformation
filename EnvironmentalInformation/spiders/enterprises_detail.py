@@ -11,6 +11,11 @@ class EnterprisesDetailSpider(scrapy.Spider):
     name = 'enterprises_detail'
     base_url = 'https://xxgk.eic.sh.cn/jsp/view/info.jsp?id={}'
     root_path = get_root_path('EnvironmentalInformation')
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'EnvironmentalInformation.pipelines.EnterprisesDetailPipeline': 300,
+        }
+    }
 
     def start_requests(self):
         # count = 0
