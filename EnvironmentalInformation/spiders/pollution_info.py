@@ -4,8 +4,9 @@ import logging
 
 import pandas
 import scrapy
+from scrapy import Request
 
-from EnvironmentalInformation.items import PollutionInfoItem
+from EnvironmentalInformation.items import PollutionInfoItem, EnterprisesImageItem
 from common.tools import get_root_path
 
 logger = logging.getLogger(__name__)
@@ -21,40 +22,54 @@ class PollutionInfoSpider(scrapy.Spider):
     # start_urls = ['http://https://xxgk.eic.sh.cn//']
     url_port = 'https://xxgk.eic.sh.cn/jsp/view/port/list.do'
     url_jcdw = 'https://xxgk.eic.sh.cn/jsp/view/jcdw/list.do'
+    url_productinfo = "https://xxgk.eic.sh.cn/tbBase/productinfo/getTWryZlinfoList.do?date={}&ST_WRY_CODE={}"
+    url_image = "https://xxgk.eic.sh.cn/jsp/view/jcdwjxm_list.jsp?baseId={}"
 
     root_path = get_root_path('EnvironmentalInformation')
     today = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-
+    date = datetime.datetime.now().strftime("%Y-%m")
 
     # 自定义配置
     custom_settings = {
         'ITEM_PIPELINES': {
-            'EnvironmentalInformation.pipelines.PollutionInfoPipeline': 300,
+            # 'scrapy.pipelines.images.ImagesPipeline': 1,
+            'EnvironmentalInformation.pipelines.PollutionInfoPipeline': 200,
+            'EnvironmentalInformation.pipelines.ImgsPipeline': 300,
         },
         # 设置log日志
         'LOG_LEVEL': 'INFO',
         'LOG_FILE': f'{root_path}log\\PollutionInfo-{today}.log',
         # 'LOG_STDOUT': True,
+        # 文件存储
+        'FILES_STORE': f'{root_path}厂区图',
     }
 
     def start_requests(self):
         # 获取企事业单位urlId
         df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="企业详细信息", header=0)
         for wryCode in df['污染源编码'].values.tolist():
+            # 排放口编号
             yield scrapy.FormRequest(url=self.url_port,
                                      formdata={
                                          "order": "asc",
                                          "wryCode": wryCode,
                                      },
                                      callback=self.parse_pfk)
-
+            # 检测项目
             yield scrapy.FormRequest(url=self.url_jcdw,
                                      formdata={
                                          "order": "asc",
                                          "wryCode": wryCode,
                                      },
                                      callback=self.get_total)
+            # 实际排放总量
+            yield Request(url=self.url_productinfo.format(self.date, wryCode), callback=self.parse_pfzl)
+        # 厂区图
+        df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
+        for url_id in df['url_id'].values.tolist():
+            yield Request(self.url_image.format(url_id), callback=self.parse_img)
 
+    # 排放口编号
     def parse_pfk(self, response):
         if response.status == 200:
             # 相应正常
@@ -63,6 +78,7 @@ class PollutionInfoSpider(scrapy.Spider):
                 item = PollutionInfoItem()
                 item["dict_pfk"] = dict_result.get('rows')
                 item["dict_poll_project"] = None
+                item['dict_pfzl'] = None
                 item["images"] = None
                 yield item
         else:
@@ -86,6 +102,7 @@ class PollutionInfoSpider(scrapy.Spider):
                                              },
                                              callback=self.parse_poll_project)
 
+    # 检测项目
     def parse_poll_project(self, response):
         if response.status == 200:
             dict_result = json.loads(response.text)
@@ -95,7 +112,38 @@ class PollutionInfoSpider(scrapy.Spider):
                 item = PollutionInfoItem()
                 item["dict_pfk"] = None
                 item["dict_poll_project"] = dict_result.get('rows')
+                item['dict_pfzl'] = None
                 item["images"] = None
                 yield item
         else:
             logger.error("响应异常")
+
+    # 实际排放总量
+    def parse_pfzl(self, response):
+        if response.status == 200:
+            th = response.xpath(r"//table/thead/tr/th/text()")
+            td = response.xpath(r"//table/tbody/tr/td/text()")
+            if len(td) > 0:
+                info = zip(th, td)
+                dict_pfzl = dict()
+                for title, data in info:
+                    dict_pfzl[title.get().strip()] = data.get().strip()
+
+                item = PollutionInfoItem()
+                item["dict_pfk"] = None
+                item["dict_poll_project"] = None
+                item['dict_pfzl'] = dict_pfzl
+                item["images"] = None
+                yield item
+
+    def parse_img(self, response):
+        if response.status == 200:
+            img_url = response.xpath(r"//span[@id='cqtImg_a']/@href")
+            if len(img_url) > 0:
+                url = response.request.url.split('=')[1]
+                item = PollutionInfoItem()
+                item["dict_pfk"] = None
+                item["dict_poll_project"] = None
+                item['dict_pfzl'] = None
+                item["images"] = img_url[0].root
+                yield item

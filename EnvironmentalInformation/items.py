@@ -28,4 +28,11 @@ class EnterprisesDetailItem(scrapy.Item):
 class PollutionInfoItem(scrapy.Item):
     dict_pfk = scrapy.Field()
     dict_poll_project = scrapy.Field()
+    dict_pfzl = scrapy.Field()
+    images = scrapy.Field()
+
+
+class EnterprisesImageItem(scrapy.Item):
+    category = scrapy.Field()
+    image_urls = scrapy.Field()
     images = scrapy.Field()

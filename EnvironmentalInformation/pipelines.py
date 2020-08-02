@@ -8,6 +8,8 @@
 import logging
 
 import pandas
+import scrapy
+from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
@@ -106,15 +108,15 @@ class PollutionInfoPipeline:
                 self.counts[1] += 1
             return item
         # 处理厂区图
-        if item['images'] is not None:
-            if self.df_images is None:
-                cols: dict = item['images'][0].keys()
-                self.df_images = pandas.DataFrame(columns=cols)
-            for col in item['images']:
-                s = pandas.Series(col)
-                self.df_images = self.df_images.append(s, ignore_index=True)
-                self.counts[2] += 1
-            return item
+        # if item['images'] is not None:
+        #     if self.df_images is None:
+        #         cols: dict = item['images'][0].keys()
+        #         self.df_images = pandas.DataFrame(columns=cols)
+        #     for col in item['images']:
+        #         s = pandas.Series(col)
+        #         self.df_images = self.df_images.append(s, ignore_index=True)
+        #         self.counts[2] += 1
+        #     return item
         return item
 
     def close_spider(self, spider):
@@ -130,3 +132,17 @@ class PollutionInfoPipeline:
         if self.df_images is not None:
             add_sheet(get_root_path('EnvironmentalInformation'), "PollutionInfo.xlsx", "厂区图信息", self.df_images)
         logger.info("save complete")
+
+
+class ImgsPipeline(ImagesPipeline):
+    # 主要重写下面三个父类方法
+    def get_media_requests(self, item, info):
+        if item['images'] is not None:
+            yield scrapy.Request(item['images'])
+
+    def file_path(self, request, response=None, info=None):
+        img_name = request.url.split('/')[-1]
+        return img_name  # 返回文件名
+
+    def item_completed(self, results, item, info):
+        return item  # 返回给下一个即将被执行的管道类

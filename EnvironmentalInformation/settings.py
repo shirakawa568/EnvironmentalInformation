@@ -22,17 +22,17 @@ ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # 最大并发请求数
-CONCURRENT_REQUESTS = 4
+# CONCURRENT_REQUESTS = 4
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 # 请求延时（秒）
-DOWNLOAD_DELAY = 1
+DOWNLOAD_DELAY = 0.5
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # 下载延时套用于IP
-CONCURRENT_REQUESTS_PER_IP = 4
+# CONCURRENT_REQUESTS_PER_IP = 4
 
 # Disable cookies (enabled by default)
 # COOKIES_ENABLED = False
