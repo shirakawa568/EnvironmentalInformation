@@ -111,7 +111,6 @@ class PollutionInfoPipeline:
             return item
         # 处理排放总量信息
         if item['dict_pfzl'] is not None:
-
             return item
         # 处理厂区图
         # if item['images'] is not None:
@@ -153,3 +152,69 @@ class DownloadImagesPipeline(ImagesPipeline):
 
     def item_completed(self, results, item, info):
         return item  # 返回给下一个即将被执行的管道类
+
+
+class PollutionControlFacilitiesPipeline:
+    def __init__(self):
+        self.df_product = None
+        self.df_pullication = None
+        self.df_pullicationEmissions = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + "PollutionControlFacilities.xlsx")
+        self.counts = [0, 0, 0]
+        self.item_count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        self.item_count += 1
+        if item['product'] is not None:
+            # 创建列名
+            if self.df_product is None:
+                cols: dict = item['product'][0].keys()
+                self.df_product = pandas.DataFrame(columns=cols)
+            for col in item['product']:
+                s = pandas.Series(col)
+                self.df_product = self.df_product.append(s, ignore_index=True)
+                self.counts[0] += 1
+            logger.info(f"{self.counts[0]}\t收到Item\t{len(item['product'])}条产生污染设施情况")
+            return item
+        if item['pullication'] is not None:
+            # 创建列名
+            if self.df_pullication is None:
+                cols: dict = item['pullication'][0].keys()
+                self.df_pullication = pandas.DataFrame(columns=cols)
+            for col in item['pullication']:
+                s = pandas.Series(col)
+                self.df_pullication = self.df_pullication.append(s, ignore_index=True)
+                self.counts[1] += 1
+            logger.info(f"{self.counts[0]}\t收到Item\t{len(item['pullication'])}条污染处理设施建设运行情况")
+            return item
+        if item['pullicationEmissions'] is not None:
+            # 创建列名
+            if self.df_pullicationEmissions is None:
+                cols: dict = item['pullicationEmissions'][0].keys()
+                self.df_pullicationEmissions = pandas.DataFrame(columns=cols)
+            for col in item['pullicationEmissions']:
+                s = pandas.Series(col)
+                self.df_pullicationEmissions = self.df_pullicationEmissions.append(s, ignore_index=True)
+                self.counts[2] += 1
+            logger.info(f"{self.counts[0]}\t收到Item\t{len(item['pullicationEmissions'])}条污染物排放方式及排放去向")
+            return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        print("爬取内容条数：", self.counts, "激活Item数：", self.item_count)
+        # 覆盖保存
+        self.df_product.to_excel(self.writer, sheet_name='产生污染设施情况', index=False)
+        self.writer.save()
+        # 追加保存
+        if self.df_pullication is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), "PollutionControlFacilities.xlsx", "污染处理设施建设运行情况",
+                      self.df_pullication)
+        # 追加保存
+        if self.df_pullicationEmissions is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), "PollutionControlFacilities.xlsx", "污染物排放方式及排放去向",
+                      self.df_pullicationEmissions)
+        # 爬虫结束
+        logger.info("save complete")

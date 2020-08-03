@@ -36,3 +36,9 @@ class EnterprisesImageItem(scrapy.Item):
     category = scrapy.Field()
     image_urls = scrapy.Field()
     images = scrapy.Field()
+
+
+class PollutionControlFacilitiesItem(scrapy.Item):
+    product = scrapy.Field()
+    pullication = scrapy.Field()
+    pullicationEmissions = scrapy.Field()

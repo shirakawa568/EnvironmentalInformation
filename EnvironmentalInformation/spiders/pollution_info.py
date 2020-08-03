@@ -92,7 +92,7 @@ class PollutionInfoSpider(scrapy.Spider):
 
     # 获取条目总数，循环抓取每一页数据，每页20条
     def get_total(self, response):
-        page_size = 5
+        page_size = 50
         if response.status == 200:
             total = json.loads(response.text).get("total")
             wryCode = response.request.body.decode().split("&")[1].split("=")[1]
