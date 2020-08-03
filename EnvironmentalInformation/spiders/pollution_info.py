@@ -34,17 +34,23 @@ class PollutionInfoSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             # 'scrapy.pipelines.images.ImagesPipeline': 1,
             'EnvironmentalInformation.pipelines.PollutionInfoPipeline': 200,
-            'EnvironmentalInformation.pipelines.ImgsPipeline': 300,
+            'EnvironmentalInformation.pipelines.DownloadImagesPipeline': 100,
         },
         # 设置log日志
         'LOG_LEVEL': 'INFO',
         'LOG_FILE': f'{root_path}log\\PollutionInfo-{today}.log',
         # 'LOG_STDOUT': True,
         # 文件存储
-        'FILES_STORE': f'{root_path}厂区图',
+        # 'FILES_STORE': f'{root_path}厂区图',
+        # 图片存储
+        'IMAGES_STORE': f'{root_path}厂区图',
     }
 
     def start_requests(self):
+        # 厂区图
+        df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
+        for url_id in df['url_id'].values.tolist():
+            yield Request(self.url_image.format(url_id), callback=self.parse_img)
         # 获取企事业单位urlId
         df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="企业详细信息", header=0)
         for wryCode in df['污染源编码'].values.tolist():
@@ -65,9 +71,9 @@ class PollutionInfoSpider(scrapy.Spider):
             # 实际排放总量
             yield Request(url=self.url_productinfo.format(self.date, wryCode), callback=self.parse_pfzl)
         # 厂区图
-        df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
-        for url_id in df['url_id'].values.tolist():
-            yield Request(self.url_image.format(url_id), callback=self.parse_img)
+        # df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
+        # for url_id in df['url_id'].values.tolist():
+        #     yield Request(self.url_image.format(url_id), callback=self.parse_img)
 
     # 排放口编号
     def parse_pfk(self, response):
@@ -145,5 +151,5 @@ class PollutionInfoSpider(scrapy.Spider):
                 item["dict_pfk"] = None
                 item["dict_poll_project"] = None
                 item['dict_pfzl'] = None
-                item["images"] = img_url[0].root
+                item["images"] = {"url_id": url, "url": img_url[0].root}
                 yield item

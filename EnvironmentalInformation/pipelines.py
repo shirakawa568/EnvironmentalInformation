@@ -96,6 +96,7 @@ class PollutionInfoPipeline:
                 s = pandas.Series(col)
                 self.df_pfk = self.df_pfk.append(s, ignore_index=True)
                 self.counts[0] += 1
+            logger.info(f"{self.counts[1]}\t收到Item\t{len(item['dict_pfk'])}条排放口")
             return item
         # 处理排放项目信息
         if item['dict_poll_project'] is not None:
@@ -106,6 +107,11 @@ class PollutionInfoPipeline:
                 s = pandas.Series(col)
                 self.df_project = self.df_project.append(s, ignore_index=True)
                 self.counts[1] += 1
+            logger.info(f"{self.counts[1]}\t收到Item\t{len(item['dict_poll_project'])}条排放项目")
+            return item
+        # 处理排放总量信息
+        if item['dict_pfzl'] is not None:
+
             return item
         # 处理厂区图
         # if item['images'] is not None:
@@ -134,11 +140,12 @@ class PollutionInfoPipeline:
         logger.info("save complete")
 
 
-class ImgsPipeline(ImagesPipeline):
+class DownloadImagesPipeline(ImagesPipeline):
     # 主要重写下面三个父类方法
     def get_media_requests(self, item, info):
         if item['images'] is not None:
-            yield scrapy.Request(item['images'])
+            logger.info(f"url_id:{item['images']['url_id']}\t'url:'{item['images']['url']}")
+            yield scrapy.Request(item['images']['url'])
 
     def file_path(self, request, response=None, info=None):
         img_name = request.url.split('/')[-1]
