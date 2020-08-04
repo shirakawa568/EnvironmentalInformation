@@ -6,7 +6,7 @@
 import scrapy
 
 
-class EnvironmentalinformationItem(scrapy.Item):
+class EnvironmentalInformationItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
@@ -42,3 +42,13 @@ class PollutionControlFacilitiesItem(scrapy.Item):
     product = scrapy.Field()
     pullication = scrapy.Field()
     pullicationEmissions = scrapy.Field()
+
+
+class AdministrativeLicensingItem(scrapy.Item):
+    data = scrapy.Field()
+    wryCode = scrapy.Field()
+    _type = scrapy.Field()
+    # PWXK = scrapy.Field()
+    # JSXM = scrapy.Field()
+    # WFJY = scrapy.Field()
+    # OTHER = scrapy.Field()

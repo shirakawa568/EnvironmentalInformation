@@ -221,3 +221,76 @@ class PollutionControlFacilitiesPipeline:
                       self.df_pullicationEmissions)
         # 爬虫结束
         logger.info("save complete")
+
+
+# 排污许可、建设项目、???、其它许可
+class AdministrativeLicensingPipeline:
+    def __init__(self):
+        self.df_PWXK = None
+        self.df_JSXM = None
+        self.df_WFJY = None
+        self.df_OTHER = None
+        self.filename = "AdministrativeLicensing.xlsx"
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+        self.counts = [0, 0, 0, 0]
+        self.item_count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        self.item_count += 1
+        wryCode = item['wryCode']
+        _type = item['_type']
+        data = item['data']
+
+        # 排污许可证
+        if _type == "PWXK":
+            self.df_PWXK = self.test(self.df_PWXK, data, "排污许可证")
+            self.counts[0] += len(data)
+            return item
+        # 建设项目行政办理事项
+        if _type == "JSXM":
+            self.df_JSXM = self.test(self.df_JSXM, data, "建设项目行政办理事项")
+            self.counts[1] += len(data)
+            return item
+        # 未知
+        if _type == "WFJY":
+            self.df_WFJY = self.test(self.df_WFJY, data, "未知")
+            self.counts[2] += len(data)
+            return item
+        # 其他行政许可事项
+        if _type == "OTHER":
+            self.df_OTHER = self.test(self.df_OTHER, data, "其他行政许可事项")
+            self.counts[3] += len(data)
+            return item
+
+    def test(self, df, data, title):
+        if df is None:
+            cols: dict = data[0].keys()
+            df = pandas.DataFrame(columns=cols)
+        for col in data:
+            s = pandas.Series(col)
+            df = df.append(s, ignore_index=True)
+        return df
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        print("爬取内容条数：", self.counts, "Item总数：", self.item_count)
+        # 覆盖保存
+        self.df_PWXK.to_excel(self.writer, sheet_name='排污许可证', index=False)
+        self.writer.save()
+        # 追加保存
+        if self.df_JSXM is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "建设项目",
+                      self.df_JSXM)
+        # 追加保存
+        if self.df_WFJY is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "建设项目行政办理事项",
+                      self.df_WFJY)
+        # 追加保存
+        if self.df_OTHER is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "其他行政许可事项",
+                      self.df_OTHER)
+        # 爬虫结束
+        logger.info("save complete")
