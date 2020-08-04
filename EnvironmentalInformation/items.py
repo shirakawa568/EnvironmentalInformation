@@ -48,7 +48,8 @@ class AdministrativeLicensingItem(scrapy.Item):
     data = scrapy.Field()
     wryCode = scrapy.Field()
     _type = scrapy.Field()
-    # PWXK = scrapy.Field()
-    # JSXM = scrapy.Field()
-    # WFJY = scrapy.Field()
-    # OTHER = scrapy.Field()
+
+
+class EmergencyPlanItem(scrapy.Item):
+    file_urls = scrapy.Field()
+    files = scrapy.Field()

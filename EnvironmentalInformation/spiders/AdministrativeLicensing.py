@@ -69,12 +69,3 @@ class AdministrativeLicensingSpider(scrapy.Spider):
                 logger.info(f"wryCode:{wryCode},收到响应：数据为空")
         else:
             logger.error("响应异常")
-
-    def parse_JSXM(self, response):
-        pass
-
-    def parse_WFJY(self, response):
-        pass
-
-    def parse_OTHER(self, response):
-        pass

@@ -35,5 +35,5 @@ class EnterprisesDetailSpider(scrapy.Spider):
             dict_detail[title.get().strip()] = data.get().strip()
 
         item = EnterprisesDetailItem()
-        item['dict_detail'] = dict_detail
+        item['file_urls'] = dict_detail
         yield item

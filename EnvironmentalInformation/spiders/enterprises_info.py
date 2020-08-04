@@ -1,16 +1,24 @@
+import datetime
+
 import scrapy
 
 from EnvironmentalInformation.items import EnterprisesItem
+from common.tools import get_root_path
 
 
 class EnterprisesInfoSpider(scrapy.Spider):
     name = 'enterprises_info'
     # allowed_domains = ['xxgk.eic.sh.cn']
     start_urls = ['https://xxgk.eic.sh.cn/jsp/view/list.jsp']
+
+    root_path = get_root_path('EnvironmentalInformation')
+    today = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
     custom_settings = {
         'ITEM_PIPELINES': {
-            'EnvironmentalInformation.pipelines.EnvironmentalinformationPipeline': 300,
-        }
+            'EnvironmentalInformation.pipelines.EnterprisesPipeline': 300,
+        },
+        'LOG_FILE': f'{root_path}log\\EnterprisesInfo-{today}.log',
     }
 
     def parse(self, response):

@@ -6,9 +6,12 @@
 
 # useful for handling different item types with a single interface
 import logging
+from os.path import join, basename, dirname
+from urllib.parse import urlparse
 
 import pandas
 import scrapy
+from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
@@ -27,6 +30,9 @@ class EnterprisesPipeline:
     def __init__(self):
         self.df = pandas.DataFrame(columns=['id', 'name', 'area', 'type', 'url_id'])
 
+    def open_spider(self, spider):
+        print("企事业单位列表爬虫开始")
+
     def process_item(self, item, spider):
         # 处理item，返回的item会被后续Pipeline处理
         if isinstance(spider, EnterprisesInfoSpider):
@@ -34,10 +40,8 @@ class EnterprisesPipeline:
             self.df = self.df.append(s, ignore_index=True)
         return item
 
-    def open_spider(self, spider):
-        print("企事业单位列表爬虫开始")
-
     def close_spider(self, spider):
+        logger.info('spider is ending')
         if isinstance(spider, EnterprisesInfoSpider):
             # 根据ID排序
             self.df = self.df.sort_values('id', axis=0, ascending=True)
@@ -46,6 +50,7 @@ class EnterprisesPipeline:
             root_path = get_root_path('EnvironmentalInformation')
             self.df.to_excel(f'{root_path}Enterprises.xlsx', index=False)
             print("保存完成")
+        logger.info("save complete")
 
 
 class EnterprisesDetailPipeline:
@@ -67,9 +72,11 @@ class EnterprisesDetailPipeline:
         return item
 
     def close_spider(self, spider):
+        logger.info('spider is ending')
         if isinstance(spider, EnterprisesDetailSpider):
             add_sheet(get_root_path('EnvironmentalInformation'), "Enterprises.xlsx", "企业详细信息", self.df)
             print("保存完成")
+        logger.info("save complete")
 
 
 class PollutionInfoPipeline:
@@ -294,3 +301,15 @@ class AdministrativeLicensingPipeline:
                       self.df_OTHER)
         # 爬虫结束
         logger.info("save complete")
+
+
+class EmergencyPlanFilePipeline(FilesPipeline):
+    def get_media_requests(self, item, info):
+        if item.get('file_urls', None):
+            for i in range(len(item['file_urls'])):
+                url = item['file_urls'][i]
+                file = item["files"][i]
+                yield scrapy.Request(url=url, meta={'filename': file})
+
+    def file_path(self, request, response=None, info=None):
+        return request.meta['filename']
