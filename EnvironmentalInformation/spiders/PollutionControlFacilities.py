@@ -118,7 +118,7 @@ class PollutionControlFacilitiesSpider(scrapy.Spider):
         else:
             logger.error("响应异常")
 
-    def parse_pullicationEmissions(self, response):
+    def parse_pullication(self, response):
         if response.status == 200:
             data = json.loads(response.text)
             logger.info(f"收到响应：{data}")
@@ -134,7 +134,7 @@ class PollutionControlFacilitiesSpider(scrapy.Spider):
         else:
             logger.error("响应异常")
 
-    def parse_pullication(self, response):
+    def parse_pullicationEmissions(self, response):
         if response.status == 200:
             data = json.loads(response.text)
             logger.info(f"收到响应：{data}")

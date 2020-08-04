@@ -177,7 +177,8 @@ class PollutionControlFacilitiesPipeline:
                 s = pandas.Series(col)
                 self.df_product = self.df_product.append(s, ignore_index=True)
                 self.counts[0] += 1
-            logger.info(f"{self.counts[0]}\t收到Item\t{len(item['product'])}条产生污染设施情况")
+            # logger.info(f"{self.counts[0]}\t收到{len(item['product'])}条产生污染设施情况")
+            print(f"{self.item_count}\t{self.counts}\t收到{len(item['product'])}条产生污染设施情况")
             return item
         if item['pullication'] is not None:
             # 创建列名
@@ -188,7 +189,8 @@ class PollutionControlFacilitiesPipeline:
                 s = pandas.Series(col)
                 self.df_pullication = self.df_pullication.append(s, ignore_index=True)
                 self.counts[1] += 1
-            logger.info(f"{self.counts[0]}\t收到Item\t{len(item['pullication'])}条污染处理设施建设运行情况")
+            # logger.info(f"{self.counts[0]}\t收到{len(item['pullication'])}条污染处理设施建设运行情况")
+            print(f"{self.item_count}\t{self.counts}\t收到{len(item['pullication'])}条污染处理设施建设运行情况")
             return item
         if item['pullicationEmissions'] is not None:
             # 创建列名
@@ -199,7 +201,8 @@ class PollutionControlFacilitiesPipeline:
                 s = pandas.Series(col)
                 self.df_pullicationEmissions = self.df_pullicationEmissions.append(s, ignore_index=True)
                 self.counts[2] += 1
-            logger.info(f"{self.counts[0]}\t收到Item\t{len(item['pullicationEmissions'])}条污染物排放方式及排放去向")
+            # logger.info(f"{self.counts[0]}\t收到{len(item['pullicationEmissions'])}条污染物排放方式及排放去向")
+            print(f"{self.item_count}\t{self.counts}\t收到{len(item['pullicationEmissions'])}条污染物排放方式及排放去向")
             return item
 
     def close_spider(self, spider):
