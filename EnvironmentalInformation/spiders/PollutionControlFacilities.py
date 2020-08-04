@@ -33,6 +33,7 @@ class PollutionControlFacilitiesSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'EnvironmentalInformation.pipelines.PollutionControlFacilitiesPipeline': 200,
         },
+        'LOG_LEVEL': 'INFO',
         'LOG_FILE': f'{root_path}log\\PollutionControlFacilities-{today}.log',
     }
 

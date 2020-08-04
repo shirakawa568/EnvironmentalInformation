@@ -26,6 +26,7 @@ class AdministrativeLicensingSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'EnvironmentalInformation.pipelines.AdministrativeLicensingPipeline': 200,
         },
+        'LOG_LEVEL': 'INFO',
         'LOG_FILE': f'{root_path}log\\AdministrativeLicensing-{today}.log',
     }
     # 行政许可
