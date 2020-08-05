@@ -53,3 +53,7 @@ class AdministrativeLicensingItem(scrapy.Item):
 class EmergencyPlanItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
+
+class OtherInformationItem(scrapy.Item):
+    file_urls = scrapy.Field()
+    files = scrapy.Field()

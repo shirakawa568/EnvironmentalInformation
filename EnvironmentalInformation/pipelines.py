@@ -6,15 +6,17 @@
 
 # useful for handling different item types with a single interface
 import logging
+from os.path import join, basename, dirname
+from urllib.parse import urlparse
 
 import pandas
 import scrapy
 from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 
+from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
-from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 
 logger = logging.getLogger(__name__)
 
@@ -311,3 +313,11 @@ class EmergencyPlanFilePipeline(FilesPipeline):
 
     def file_path(self, request, response=None, info=None):
         return request.meta['filename']
+
+
+class OtherInformationPipeline():
+    pass
+
+
+class OtherInformationFilePipeline(FilesPipeline):
+    pass
