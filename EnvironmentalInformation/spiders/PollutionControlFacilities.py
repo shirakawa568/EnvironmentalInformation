@@ -5,8 +5,8 @@ import logging
 import pandas
 import scrapy
 
-from EnvironmentalInformation.items import PollutionControlFacilitiesItem
 from EnvironmentalInformation.common.tools import get_root_path
+from EnvironmentalInformation.items import PollutionControlFacilitiesItem
 
 logger = logging.getLogger(__name__)
 
