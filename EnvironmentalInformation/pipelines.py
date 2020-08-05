@@ -6,8 +6,6 @@
 
 # useful for handling different item types with a single interface
 import logging
-from os.path import join, basename, dirname
-from urllib.parse import urlparse
 
 import pandas
 import scrapy
@@ -16,7 +14,7 @@ from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
-from common.tools import get_root_path, add_sheet
+from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import pandas
 import scrapy
 
 from EnvironmentalInformation.items import AdministrativeLicensingItem
-from common.tools import get_root_path
+from EnvironmentalInformation.common.tools import get_root_path
 
 logger = logging.getLogger(__name__)
 

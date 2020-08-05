@@ -6,7 +6,7 @@ import scrapy
 from scrapy import Request
 
 from EnvironmentalInformation.items import EmergencyPlanItem
-from common.tools import get_root_path
+from EnvironmentalInformation.common.tools import get_root_path
 
 
 class EmergencyPlanSpider(scrapy.Spider):
@@ -36,7 +36,7 @@ class EmergencyPlanSpider(scrapy.Spider):
     def parse(self, response):
         file = response.xpath(r'//*[@id="fileList"]/tbody/tr/td[1]/text()').extract()
         url = response.xpath(r'//*[@id="fileList"]/tbody/tr/td[3]').extract()
-        urls,files = list(),list()
+        urls, files = list(), list()
         for i in range(len(url)):
             p = re.findall(".*filedown\(\\'(.*)\\'.*", url[i])
             urls.append(self.file_url.format(p[0]))

@@ -3,7 +3,7 @@ import datetime
 import scrapy
 
 from EnvironmentalInformation.items import EnterprisesItem
-from common.tools import get_root_path
+from EnvironmentalInformation.common.tools import get_root_path
 
 
 class EnterprisesInfoSpider(scrapy.Spider):
