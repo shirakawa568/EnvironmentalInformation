@@ -2,8 +2,8 @@ import pandas
 import scrapy
 from scrapy import Request
 
-from EnvironmentalInformation.items import EnterprisesDetailItem
 from EnvironmentalInformation.common.tools import get_root_path
+from EnvironmentalInformation.items import EnterprisesDetailItem
 
 
 class EnterprisesDetailSpider(scrapy.Spider):
