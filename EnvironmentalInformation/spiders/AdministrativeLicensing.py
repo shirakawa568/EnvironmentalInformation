@@ -6,7 +6,7 @@ import pandas
 import scrapy
 
 from EnvironmentalInformation.items import AdministrativeLicensingItem
-from common.tools import get_root_path
+from EnvironmentalInformation.common.tools import get_root_path
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,6 @@ class AdministrativeLicensingSpider(scrapy.Spider):
                 item["data"] = data.get("rows")
                 yield item
             else:
-
                 logger.info(f"wryCode:{wryCode},收到响应：数据为空")
         else:
-            logger.error("响应异常")
+            logger.error(f"响应异常：{response.status}")

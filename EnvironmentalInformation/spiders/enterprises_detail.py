@@ -2,9 +2,8 @@ import pandas
 import scrapy
 from scrapy import Request
 
-from EnvironmentalInformation import settings
 from EnvironmentalInformation.items import EnterprisesDetailItem
-from common.tools import get_root_path
+from EnvironmentalInformation.common.tools import get_root_path
 
 
 class EnterprisesDetailSpider(scrapy.Spider):
@@ -22,9 +21,6 @@ class EnterprisesDetailSpider(scrapy.Spider):
         df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
         for uid, url_id in df[['id', 'url_id']].values.tolist():
             yield Request(self.base_url.format(url_id))
-            # count += 1
-            # if count == 3:
-            #     return
 
     def parse(self, response):
         th = response.xpath(r"//table/tr/th/text()")
@@ -35,5 +31,5 @@ class EnterprisesDetailSpider(scrapy.Spider):
             dict_detail[title.get().strip()] = data.get().strip()
 
         item = EnterprisesDetailItem()
-        item['file_urls'] = dict_detail
+        item['dict_detail'] = dict_detail
         yield item

@@ -6,8 +6,6 @@
 
 # useful for handling different item types with a single interface
 import logging
-from os.path import join, basename, dirname
-from urllib.parse import urlparse
 
 import pandas
 import scrapy
@@ -16,7 +14,7 @@ from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
-from common.tools import get_root_path, add_sheet
+from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 
 logger = logging.getLogger(__name__)
 
@@ -289,11 +287,11 @@ class AdministrativeLicensingPipeline:
         self.writer.save()
         # 追加保存
         if self.df_JSXM is not None:
-            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "建设项目",
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "建设项目行政办理事项",
                       self.df_JSXM)
         # 追加保存
         if self.df_WFJY is not None:
-            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "建设项目行政办理事项",
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "Sheet3",
                       self.df_WFJY)
         # 追加保存
         if self.df_OTHER is not None:
