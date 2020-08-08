@@ -185,7 +185,6 @@ class PollutionControlFacilitiesPipeline:
                 s = pandas.Series(col)
                 self.df_product = self.df_product.append(s, ignore_index=True)
                 self.counts[0] += 1
-            # logger.info(f"{self.counts[0]}\t收到{len(item['product'])}条产生污染设施情况")
             print(f"{self.item_count}\t{self.counts}\t收到{len(item['product'])}条产生污染设施情况")
             return item
         if item['pullication'] is not None:
@@ -197,7 +196,6 @@ class PollutionControlFacilitiesPipeline:
                 s = pandas.Series(col)
                 self.df_pullication = self.df_pullication.append(s, ignore_index=True)
                 self.counts[1] += 1
-            # logger.info(f"{self.counts[0]}\t收到{len(item['pullication'])}条污染处理设施建设运行情况")
             print(f"{self.item_count}\t{self.counts}\t收到{len(item['pullication'])}条污染处理设施建设运行情况")
             return item
         if item['pullicationEmissions'] is not None:
@@ -209,13 +207,12 @@ class PollutionControlFacilitiesPipeline:
                 s = pandas.Series(col)
                 self.df_pullicationEmissions = self.df_pullicationEmissions.append(s, ignore_index=True)
                 self.counts[2] += 1
-            # logger.info(f"{self.counts[0]}\t收到{len(item['pullicationEmissions'])}条污染物排放方式及排放去向")
             print(f"{self.item_count}\t{self.counts}\t收到{len(item['pullicationEmissions'])}条污染物排放方式及排放去向")
             return item
 
     def close_spider(self, spider):
         logger.info('spider is ending')
-        print("爬取内容条数：", self.counts, "激活Item数：", self.item_count)
+        logger.info("爬取内容条数：", self.counts, "激活Item数：", self.item_count)
         # 覆盖保存
         self.df_product.to_excel(self.writer, sheet_name='产生污染设施情况', index=False)
         self.writer.save()
@@ -284,7 +281,7 @@ class AdministrativeLicensingPipeline:
 
     def close_spider(self, spider):
         logger.info('spider is ending')
-        print("爬取内容条数：", self.counts, "Item总数：", self.item_count)
+        logger.info("爬取内容条数：", self.counts, "Item总数：", self.item_count)
         # 覆盖保存
         self.df_PWXK.to_excel(self.writer, sheet_name='排污许可证', index=False)
         self.writer.save()
@@ -368,7 +365,7 @@ class OtherInformationPipeline:
 
     def close_spider(self, spider):
         logger.info('spider is ending')
-        print("爬取内容条数：", self.counts, "Item总数：", self.item_count)
+        logger.info("爬取内容条数：", self.counts, "Item总数：", self.item_count)
         # 覆盖保存
         self.df_reward.to_excel(self.writer, sheet_name='环保奖励情况', index=False)
         self.writer.save()
@@ -384,5 +381,103 @@ class OtherInformationPipeline:
         logger.info("save complete")
 
 
-class OtherInformationFilePipeline(FilesPipeline):
-    pass
+class MonitoringDataPipeline:
+    filename = "MonitoringData.xlsx"
+
+    def __init__(self):
+        self.df_waterHand = None
+        self.df = {
+            "waterHand": None, "wasteHand": None, "noiseHand": None, "waterAuto": None, "wasteAuto": None
+        }
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+        self.counts = dict()
+        self.item_count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        self.item_count += 1
+        if self.df[item["title"]] is None:
+            cols: dict = item['dict_data'][0].keys()
+            self.df[item["title"]] = pandas.DataFrame(columns=cols)
+        for col in item['dict_data']:
+            s = pandas.Series(col)
+            self.df[item["title"]] = self.df[item["title"]].append(s, ignore_index=True)
+            if self.counts.get(item["title"]) is None:
+                self.counts[item["title"]] = 1
+            else:
+                self.counts[item["title"]] += 1
+        print(self.counts)
+        return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        logger.info(f"爬取内容条数：{self.counts}")
+        logger.info(f"Item总数：{self.item_count}")
+        # 覆盖保存:废水手工监测记录
+        self.df["waterHand"].to_excel(self.writer, sheet_name='废水手工监测记录', index=False)
+        self.writer.save()
+        # 追加保存:废气手工监测记录
+        if self.df["wasteHand"] is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="废气手工监测记录",
+                      dataframe=self.df["wasteHand"])
+        # 噪声手工监测记录
+        if self.df["noiseHand"] is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="噪声手工监测记录",
+                      dataframe=self.df["noiseHand"])
+        # 废水在线监测记录
+        if self.df["waterAuto"] is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="废水在线监测记录",
+                      dataframe=self.df["waterAuto"])
+        # 废气在线监测记录
+        if self.df["wasteAuto"] is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="废气在线监测记录",
+                      dataframe=self.df["wasteAuto"])
+        # 爬虫结束
+        logger.info("save complete")
+
+
+class ManualMonitoringPipeline:
+    filename = "ManualMonitoring.xlsx"
+
+    def __init__(self):
+        self.df = {
+            "sgWater": None, "sgWaste": None
+        }
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+        self.counts = dict()
+        self.item_count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        self.item_count += 1
+        if self.df[item["title"]] is None:
+            cols: dict = item['dict_data'][0].keys()
+            self.df[item["title"]] = pandas.DataFrame(columns=cols)
+        for col in item['dict_data']:
+            s = pandas.Series(col)
+            self.df[item["title"]] = self.df[item["title"]].append(s, ignore_index=True)
+            if self.counts.get(item["title"]) is None:
+                self.counts[item["title"]] = 1
+            else:
+                self.counts[item["title"]] += 1
+        print(self.counts)
+        return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        logger.info(f"爬取内容条数：{self.counts}")
+        logger.info(f"Item总数：{self.item_count}")
+        # 覆盖保存:废水手工监测记录
+        if self.df["sgWater"] is not None:
+            self.df["sgWater"].to_excel(self.writer, sheet_name='废水手工监测记录', index=False)
+            self.writer.save()
+        # 追加保存:废气手工监测记录
+        if self.df["sgWaste"] is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="废气手工监测记录",
+                      dataframe=self.df["wasteHand"])
+        # 爬虫结束
+        logger.info("save complete")

@@ -1,5 +1,6 @@
 """
  -s CLOSESPIDER_ITEMCOUNT=10
+ -s CLOSESPIDER_PAGECOUNT=100
 
 """
 from scrapy import cmdline

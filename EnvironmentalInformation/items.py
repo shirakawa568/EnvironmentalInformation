@@ -74,3 +74,15 @@ class OtherInformationItem(scrapy.Item):
 class OtherInformationFileItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
+
+
+class MonitoringDataItem(scrapy.Item):
+    dict_data = scrapy.Field()
+    title = scrapy.Field()
+    url_id = scrapy.Field()
+
+
+class ManualMonitoringItem(scrapy.Item):
+    dict_data = scrapy.Field()
+    title = scrapy.Field()
+    url_id = scrapy.Field()
