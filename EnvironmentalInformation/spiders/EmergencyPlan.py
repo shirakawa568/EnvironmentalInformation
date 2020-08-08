@@ -36,11 +36,11 @@ class EmergencyPlanSpider(scrapy.Spider):
     def parse(self, response):
         file = response.xpath(r'//*[@id="fileList"]/tbody/tr/td[1]/text()').extract()
         url = response.xpath(r'//*[@id="fileList"]/tbody/tr/td[3]').extract()
-        urls,files = list(),list()
+        urls, files = list(), list()
         for i in range(len(url)):
             p = re.findall(".*filedown\(\\'(.*)\\'.*", url[i])
             urls.append(self.file_url.format(p[0]))
-            files.append(file[i])
+            files.append(p[0] + "." + file[i].split(".")[-1])
 
         item = EmergencyPlanItem()
         item['file_urls'] = urls

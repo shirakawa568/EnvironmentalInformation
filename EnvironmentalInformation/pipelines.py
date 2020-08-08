@@ -15,6 +15,7 @@ from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.common.tools import get_root_path, add_sheet
+from EnvironmentalInformation.items import OtherInformationRewardItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 
@@ -315,8 +316,72 @@ class EmergencyPlanFilePipeline(FilesPipeline):
         return request.meta['filename']
 
 
-class OtherInformationPipeline():
-    pass
+#
+class OtherInformationPipeline:
+    filename = "OtherInformation.xlsx"
+
+    def __init__(self):
+        self.df_reward = None
+        self.df_ZXJC = None
+        self.df_SHZR = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+        self.counts = [0, 0, 0]
+        self.item_count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        self.item_count += 1
+        # 环保奖励情况
+        if isinstance(item, OtherInformationRewardItem):
+            if self.df_reward is None:
+                cols: dict = item['dict_data'][0].keys()
+                self.df_reward = pandas.DataFrame(columns=cols)
+            for col in item['dict_data']:
+                s = pandas.Series(col)
+                self.df_reward = self.df_reward.append(s, ignore_index=True)
+            self.counts[0] += len(item['dict_data'])
+            print(f"{self.item_count}\t{self.counts}\t收到{len(item['dict_data'])}条环保奖励情况")
+            return item
+        # 自行监测方案
+        if item.get('title') == 'ZXJC':
+            if self.df_ZXJC is None:
+                cols: dict = item['dict_data'].keys()
+                self.df_ZXJC = pandas.DataFrame(columns=cols)
+            s = pandas.Series(item['dict_data'])
+            self.df_ZXJC = self.df_ZXJC.append(s, ignore_index=True)
+            self.counts[1] += 1
+            print(f"{self.item_count}\t{self.counts}\t收到1条自行监测方案")
+            return item
+        # 社会责任报告
+        if item.get('title') == 'SHZR':
+            if self.df_SHZR is None:
+                cols: dict = item['dict_data'].keys()
+                self.df_SHZR = pandas.DataFrame(columns=cols)
+            s = pandas.Series(item['dict_data'])
+            self.df_SHZR = self.df_SHZR.append(s, ignore_index=True)
+            self.counts[2] += 1
+            print(f"{self.item_count}\t{self.counts}\t收到1条社会责任报告")
+            return item
+        return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        print("爬取内容条数：", self.counts, "Item总数：", self.item_count)
+        # 覆盖保存
+        self.df_reward.to_excel(self.writer, sheet_name='环保奖励情况', index=False)
+        self.writer.save()
+        # 追加保存:自行监测方案
+        if self.df_ZXJC is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="自行监测方案",
+                      dataframe=self.df_ZXJC)
+        # 追加保存:社会责任报告
+        if self.df_SHZR is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="社会责任报告",
+                      dataframe=self.df_SHZR)
+        # 爬虫结束
+        logger.info("save complete")
 
 
 class OtherInformationFilePipeline(FilesPipeline):

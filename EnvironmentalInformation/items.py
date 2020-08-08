@@ -54,6 +54,23 @@ class EmergencyPlanItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
 
+
+# 环保奖励情况
+class OtherInformationRewardItem(scrapy.Item):
+    dict_data = scrapy.Field()
+    awards = scrapy.Field()
+    rewardTime = scrapy.Field()
+    awardDepartment = scrapy.Field()
+
+
 class OtherInformationItem(scrapy.Item):
+    dict_data = scrapy.Field()
+    title = scrapy.Field()
+    filename = scrapy.Field()
+    uploadTime = scrapy.Field()
+    url = scrapy.Field()
+
+
+class OtherInformationFileItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
