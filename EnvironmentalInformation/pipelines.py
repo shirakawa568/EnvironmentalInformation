@@ -15,7 +15,7 @@ from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.common.tools import get_root_path, add_sheet
-from EnvironmentalInformation.items import OtherInformationRewardItem
+from EnvironmentalInformation.items import OtherInformationRewardItem, EnvironmentalReportItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 
@@ -479,5 +479,39 @@ class ManualMonitoringPipeline:
         if self.df["sgWaste"] is not None:
             add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="废气手工监测记录",
                       dataframe=self.df["wasteHand"])
+        # 爬虫结束
+        logger.info("save complete")
+
+
+# 拟报批的环境影响报告表
+class EnvironmentalReportPipeline:
+    filename = "EnvironmentalReport.xlsx"
+
+    def __init__(self):
+        self.df = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+        self.count = 0
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        if isinstance(item, EnvironmentalReportItem):
+            self.count += 1
+            if self.df is None:
+                titles: dict = item["dict_data"].keys()
+                self.df = pandas.DataFrame(columns=titles)
+            s = pandas.Series(item['dict_data'])
+            self.df = self.df.append(s, ignore_index=True)
+            print(self.count)
+            return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        logger.info(f"Item总数：{self.count}")
+        # 覆盖保存:拟报批的环境影响报告表
+        if self.df is not None:
+            self.df.to_excel(self.writer, sheet_name='拟报批的环境影响报告表', index=False)
+            self.writer.save()
         # 爬虫结束
         logger.info("save complete")

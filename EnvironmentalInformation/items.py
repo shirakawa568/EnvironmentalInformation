@@ -86,3 +86,14 @@ class ManualMonitoringItem(scrapy.Item):
     dict_data = scrapy.Field()
     title = scrapy.Field()
     url_id = scrapy.Field()
+
+
+class EnvironmentalReportItem(scrapy.Item):
+    dict_data = scrapy.Field()
+    title = scrapy.Field()
+    url_id = scrapy.Field()
+
+
+class FilesDownloadItem(scrapy.Item):
+    file_urls = scrapy.Field()
+    files = scrapy.Field()
