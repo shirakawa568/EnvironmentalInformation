@@ -16,7 +16,7 @@ from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 from EnvironmentalInformation.items import OtherInformationRewardItem, EnvironmentalReportItem, \
-    InformationDisclosureItem, InformationDisclosureDetailItem
+    InformationDisclosureItem, InformationDisclosureDetailItem, CleanerProductionItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 
@@ -556,6 +556,7 @@ class InformationDisclosurePipeline:
         # 保存Excel
         root_path = get_root_path('EnvironmentalInformation')
         self.df.to_excel(self.writer, sheet_name="环评事中事后信息公开", index=False)
+        self.writer.save()
         # 追加sheet项目详情
         if self.df_detail is not None:
             add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="项目详情",
@@ -564,4 +565,85 @@ class InformationDisclosurePipeline:
         if self.df_files is not None:
             add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="文件列表",
                       dataframe=self.df_files)
+        logger.info("save complete")
+
+
+# 清洁生产
+class CleanerProductionPipeline:
+    filename = "CleanerProduction.xlsx"
+
+    def __init__(self):
+        self.df_crop_info = None
+        self.df_double_super = None
+        self.df_use_materials = None
+        self.df_discharge_materials = None
+        self.df_generation_disposal = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+
+    def open_spider(self, spider):
+        print("清洁生产爬虫开始")
+
+    def process_item(self, item, spider):
+        if isinstance(item, CleanerProductionItem):
+            # 公司信息
+            if self.df_crop_info is None:
+                titles = item["crop_info"].keys()
+                self.df_crop_info = pandas.DataFrame(columns=titles)
+            s = pandas.Series(item["crop_info"])
+            self.df_crop_info = self.df_crop_info.append(s, ignore_index=True)
+            # 双超信息
+            if len(item["double_super"]) > 0:
+                if self.df_double_super is None:
+                    titles = item["double_super"][0].keys()
+                    self.df_double_super = pandas.DataFrame(columns=titles)
+                for row in item["double_super"]:
+                    s = pandas.Series(row)
+                    self.df_double_super = self.df_double_super.append(s, ignore_index=True)
+            # 双有信息 - 使用有毒有害原料
+            if len(item["use_materials"]) > 0:
+                if self.df_use_materials is None:
+                    titles = item["use_materials"][0].keys()
+                    self.df_use_materials = pandas.DataFrame(columns=titles)
+                for row in item["use_materials"]:
+                    s = pandas.Series(row)
+                    self.df_use_materials = self.df_use_materials.append(s, ignore_index=True)
+            # 双有信息 - 排放有毒有害物质
+            if len(item["discharge_materials"]) > 0:
+                if self.df_discharge_materials is None:
+                    titles = item["discharge_materials"][0].keys()
+                    self.df_discharge_materials = pandas.DataFrame(columns=titles)
+                for row in item["discharge_materials"]:
+                    s = pandas.Series(row)
+                    self.df_discharge_materials = self.df_discharge_materials.append(s, ignore_index=True)
+            # 双有信息 - 危险废物的产生和处置
+            if len(item["generation_disposal"]) > 0:
+                if self.df_generation_disposal is None:
+                    titles = item["generation_disposal"][0].keys()
+                    self.df_generation_disposal = pandas.DataFrame(columns=titles)
+                for row in item["generation_disposal"]:
+                    s = pandas.Series(row)
+                    self.df_generation_disposal = self.df_generation_disposal.append(s, ignore_index=True)
+        return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        # 保存Excel
+        self.df_crop_info.to_excel(self.writer, sheet_name="公司信息", index=False)
+        self.writer.save()
+        # 追加sheet双超信息
+        if self.df_double_super is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="双超信息",
+                      dataframe=self.df_double_super)
+        # 追加sheet双有信息 - 使用有毒有害原料
+        if self.df_use_materials is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="双有信息 - 使用有毒有害原料",
+                      dataframe=self.df_use_materials)
+        # 追加sheet # 双有信息 - 排放有毒有害物质
+        if self.df_discharge_materials is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name=" # 双有信息 - 排放有毒有害物质",
+                      dataframe=self.df_discharge_materials)
+        # 追加sheet # 双有信息 - 危险废物的产生和处置
+        if self.df_generation_disposal is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name=" # 双有信息 - 危险废物的产生和处置",
+                      dataframe=self.df_generation_disposal)
         logger.info("save complete")

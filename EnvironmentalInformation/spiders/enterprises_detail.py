@@ -1,3 +1,5 @@
+import datetime
+
 import pandas
 import scrapy
 from scrapy import Request
@@ -10,10 +12,14 @@ class EnterprisesDetailSpider(scrapy.Spider):
     name = 'enterprises_detail'
     base_url = 'https://xxgk.eic.sh.cn/jsp/view/info.jsp?id={}'
     root_path = get_root_path('EnvironmentalInformation')
+    today = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
     custom_settings = {
         'ITEM_PIPELINES': {
             'EnvironmentalInformation.pipelines.EnterprisesDetailPipeline': 300,
-        }
+        },
+        'LOG_LEVEL': 'INFO',
+        'LOG_FILE': f'{root_path}log\\EnterprisesDetail-{today}.log',
     }
 
     def start_requests(self):

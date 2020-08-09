@@ -112,3 +112,13 @@ class InformationDisclosureItem(scrapy.Item):
 class InformationDisclosureDetailItem(scrapy.Item):
     dict_data = scrapy.Field()
     list_files = scrapy.Field()
+
+
+class CleanerProductionItem(scrapy.Item):
+    crop_info = scrapy.Field()  # 公司信息
+    double_super = scrapy.Field()  # 双超信息
+    use_materials = scrapy.Field()  # 双有信息 - 使用有毒有害原料
+    discharge_materials = scrapy.Field()  # 双有信息 - 排放有毒有害物质
+    generation_disposal = scrapy.Field()  # 双有信息 - 危险废物的产生和处置
+
+
