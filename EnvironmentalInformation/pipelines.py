@@ -15,7 +15,8 @@ from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.common.tools import get_root_path, add_sheet
-from EnvironmentalInformation.items import OtherInformationRewardItem, EnvironmentalReportItem
+from EnvironmentalInformation.items import OtherInformationRewardItem, EnvironmentalReportItem, \
+    InformationDisclosureItem, InformationDisclosureDetailItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 
@@ -514,4 +515,53 @@ class EnvironmentalReportPipeline:
             self.df.to_excel(self.writer, sheet_name='拟报批的环境影响报告表', index=False)
             self.writer.save()
         # 爬虫结束
+        logger.info("save complete")
+
+
+class InformationDisclosurePipeline:
+    filename = "InformationDisclosure.xlsx"
+
+    def __init__(self):
+        self.df = pandas.DataFrame(columns=['id', 'project_name', 'area', 'current_stage', 'public_date', 'project_id'])
+        self.df_detail = None
+        self.df_files = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+
+    def open_spider(self, spider):
+        print("环评事中事后信息公开爬虫开始")
+
+    def process_item(self, item, spider):
+        if isinstance(item, InformationDisclosureItem):
+            s = pandas.Series(item)
+            self.df = self.df.append(s, ignore_index=True)
+        if isinstance(item, InformationDisclosureDetailItem):
+            # 处理详情列表
+            if self.df_detail is None:
+                titles = item["dict_data"].keys()
+                self.df_detail = pandas.DataFrame(columns=titles)
+            s = pandas.Series(item["dict_data"])
+            self.df_detail = self.df_detail.append(s, ignore_index=True)
+            # 处理文件列表
+            if self.df_files is None:
+                titles = item["list_files"][0].keys()
+                self.df_files = pandas.DataFrame(columns=titles)
+            for row in item["list_files"]:
+                s = pandas.Series(row)
+                self.df_files = self.df_files.append(s, ignore_index=True)
+        return item
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        self.df = self.df.sort_values('id', axis=0, ascending=True)
+        # 保存Excel
+        root_path = get_root_path('EnvironmentalInformation')
+        self.df.to_excel(self.writer, sheet_name="环评事中事后信息公开", index=False)
+        # 追加sheet项目详情
+        if self.df_detail is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="项目详情",
+                      dataframe=self.df_detail)
+        # 追加sheet文件关联表
+        if self.df_files is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="文件列表",
+                      dataframe=self.df_files)
         logger.info("save complete")

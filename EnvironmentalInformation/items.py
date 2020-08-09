@@ -97,3 +97,18 @@ class EnvironmentalReportItem(scrapy.Item):
 class FilesDownloadItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
+
+
+# 环评事中事后信息公开
+class InformationDisclosureItem(scrapy.Item):
+    id = scrapy.Field()
+    project_name = scrapy.Field()
+    area = scrapy.Field()
+    current_stage = scrapy.Field()
+    public_date = scrapy.Field()
+    project_id = scrapy.Field()
+
+
+class InformationDisclosureDetailItem(scrapy.Item):
+    dict_data = scrapy.Field()
+    list_files = scrapy.Field()
