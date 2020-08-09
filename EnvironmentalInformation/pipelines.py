@@ -647,3 +647,7 @@ class CleanerProductionPipeline:
             add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name=" # 双有信息 - 危险废物的产生和处置",
                       dataframe=self.df_generation_disposal)
         logger.info("save complete")
+
+
+class LicenseInformationPipeline:
+    pass

@@ -122,3 +122,5 @@ class CleanerProductionItem(scrapy.Item):
     generation_disposal = scrapy.Field()  # 双有信息 - 危险废物的产生和处置
 
 
+class LicenseInformationItem(scrapy.Item):
+    pass
