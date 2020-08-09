@@ -213,7 +213,7 @@ class PollutionControlFacilitiesPipeline:
 
     def close_spider(self, spider):
         logger.info('spider is ending')
-        logger.info("爬取内容条数：", self.counts, "激活Item数：", self.item_count)
+        print("爬取内容条数：", self.counts, "激活Item数：", self.item_count)
         # 覆盖保存
         self.df_product.to_excel(self.writer, sheet_name='产生污染设施情况', index=False)
         self.writer.save()
@@ -282,7 +282,7 @@ class AdministrativeLicensingPipeline:
 
     def close_spider(self, spider):
         logger.info('spider is ending')
-        logger.info("爬取内容条数：", self.counts, "Item总数：", self.item_count)
+        print("爬取内容条数：", self.counts, "Item总数：", self.item_count)
         # 覆盖保存
         self.df_PWXK.to_excel(self.writer, sheet_name='排污许可证', index=False)
         self.writer.save()
@@ -366,7 +366,7 @@ class OtherInformationPipeline:
 
     def close_spider(self, spider):
         logger.info('spider is ending')
-        logger.info("爬取内容条数：", self.counts, "Item总数：", self.item_count)
+        print("爬取内容条数：", self.counts, "Item总数：", self.item_count)
         # 覆盖保存
         self.df_reward.to_excel(self.writer, sheet_name='环保奖励情况', index=False)
         self.writer.save()

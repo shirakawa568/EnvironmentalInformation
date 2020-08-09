@@ -20,22 +20,35 @@ class LicenseInformationSpider(scrapy.Spider):
             'EnvironmentalInformation.pipelines.LicenseInformationPipeline': 200,
         },
         'LOG_LEVEL': 'INFO',
-        'LOG_FILE': f'{root_path}log\\CleanerProduction-{today}.log',
-        'FILES_STORE': f'{root_path}清洁生产'
+        'LOG_FILE': f'{root_path}log\\LicenseInformation-{today}.log',
+        'FILES_STORE': f'{root_path}许可信息公开'
     }
 
     # 分页参数
     page_size = 20
 
-    # 环评事中事后信息公开 列表
-    qjsc = "https://xxgk.eic.sh.cn/jsp/view/qjsc/qjsc.jsp"
-    qjscDetail = "https://xxgk.eic.sh.cn/jsp/view/qjsc/qjscDetail.jsp?year={}&stId={}"
-    qjscFile = "https://xxgk.eic.sh.cn/qjsc/cmpy/syDownload.do?stSyId={}"
+    # 许可信息公开 列表
+    base_url = "http://permit.mee.gov.cn/permitExt/syssb/xkgg/xkgg!licenseInformation.action"
 
     def start_requests(self):
         data = {
-            "year": str(self.lastYear),
-            "maxYear": str(self.year),
-            "pageSize": str(self.page_size),
+            "province": '310000000000',
+            "city": '310100000000',
         }
-        yield scrapy.FormRequest(url=self.qjsc, formdata=data, callback=self.parse_cleaner_production_total)
+        yield scrapy.FormRequest(url=self.base_url, formdata=data, callback=self.parse_license_information_total)
+
+    # 获取总页数，处理分页  re_first(r".*共(.*)页.*")
+    def parse_license_information_total(self, response):
+        page_num = response.xpath(r"//div[@class='fr margin-t-33 margin-b-20']/text()").re_first(r"共([0-9]*)页")
+        page_num = int(page_num)
+        for num in range(1, page_num + 1):
+            data = {
+                "page.pageNo": str(num),
+                "province": '310000000000',
+                "city": '310100000000',
+            }
+            yield scrapy.FormRequest(url=self.base_url, formdata=data,
+                                     callback=self.parse_license_information_index)
+
+    def parse_license_information_index(self, response):
+        pass
