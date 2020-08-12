@@ -101,3 +101,7 @@ class EnvironmentalinformationDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+class ProxyMiddleware(object):
+    def process_request(self, request, spider):
+        request.meta['proxy'] = "http://proxy.yourproxy:8001"
