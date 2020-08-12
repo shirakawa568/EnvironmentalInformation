@@ -123,4 +123,6 @@ class CleanerProductionItem(scrapy.Item):
 
 
 class LicenseInformationItem(scrapy.Item):
-    pass
+    dict_index = scrapy.Field()
+    dict_detail = scrapy.Field()
+

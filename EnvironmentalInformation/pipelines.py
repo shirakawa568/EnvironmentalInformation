@@ -16,7 +16,7 @@ from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 from EnvironmentalInformation.items import OtherInformationRewardItem, EnvironmentalReportItem, \
-    InformationDisclosureItem, InformationDisclosureDetailItem, CleanerProductionItem
+    InformationDisclosureItem, InformationDisclosureDetailItem, CleanerProductionItem, LicenseInformationItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 
@@ -640,14 +640,53 @@ class CleanerProductionPipeline:
                       dataframe=self.df_use_materials)
         # 追加sheet # 双有信息 - 排放有毒有害物质
         if self.df_discharge_materials is not None:
-            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name=" # 双有信息 - 排放有毒有害物质",
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="双有信息 - 排放有毒有害物质",
                       dataframe=self.df_discharge_materials)
         # 追加sheet # 双有信息 - 危险废物的产生和处置
         if self.df_generation_disposal is not None:
-            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name=" # 双有信息 - 危险废物的产生和处置",
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="双有信息 - 危险废物的产生和处置",
                       dataframe=self.df_generation_disposal)
         logger.info("save complete")
 
 
 class LicenseInformationPipeline:
-    pass
+    filename = "LicenseInformation.xlsx"
+
+    def __init__(self):
+        self.df_index = None
+        self.df_detail = None
+
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+
+    def open_spider(self, spider):
+        print("许可信息公开")
+
+    def process_item(self, item, spider):
+        if isinstance(item, LicenseInformationItem):
+            # 许可信息公开,企业列表数据
+            if item.get("dict_index"):
+                self.df_index = self.get_item(item, self.df_index, "dict_index")
+            # 许可信息公开，企业子页面
+            if item.get("dict_detail"):
+                self.df_detail = self.get_item(item, self.df_detail, "dict_detail")
+
+    @staticmethod
+    def get_item(item, df, key):
+        if df is None:
+            titles = item[key].keys()
+            df = pandas.DataFrame(columns=titles)
+        s = pandas.Series(item[key])
+        df = df.append(s, ignore_index=True)
+        return df
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        # 保存Excel
+        self.df_index.to_excel(self.writer, sheet_name="企业列表", index=False)
+        self.writer.save()
+        # 追加sheet
+        if self.df_detail is not None:
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="企业子页面",
+                      dataframe=self.df_detail)
+
+        logger.info("save complete")
