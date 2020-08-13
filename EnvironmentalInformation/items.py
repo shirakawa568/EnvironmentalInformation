@@ -51,6 +51,10 @@ class AdministrativeLicensingItem(scrapy.Item):
 
 
 class EmergencyPlanItem(scrapy.Item):
+    dict_data = scrapy.Field()
+
+
+class EmergencyPlanFileItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
 
@@ -125,4 +129,3 @@ class CleanerProductionItem(scrapy.Item):
 class LicenseInformationItem(scrapy.Item):
     dict_index = scrapy.Field()
     dict_detail = scrapy.Field()
-

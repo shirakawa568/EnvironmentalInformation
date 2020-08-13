@@ -6,7 +6,7 @@ import scrapy
 from scrapy import Request
 
 from EnvironmentalInformation.common.tools import get_root_path
-from EnvironmentalInformation.items import EmergencyPlanItem
+from EnvironmentalInformation.items import EmergencyPlanFileItem, EmergencyPlanItem
 
 
 class EmergencyPlanSpider(scrapy.Spider):
@@ -22,6 +22,7 @@ class EmergencyPlanSpider(scrapy.Spider):
     custom_settings = {
         'ITEM_PIPELINES': {
             'EnvironmentalInformation.pipelines.EmergencyPlanFilePipeline': 1,
+            'EnvironmentalInformation.pipelines.EmergencyPlanPipeline': 100,
         },
         'LOG_LEVEL': 'INFO',
         'LOG_FILE': f'{root_path}log\\EmergencyPlan-{today}.log',
@@ -29,9 +30,9 @@ class EmergencyPlanSpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
+        df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="企业详细信息", header=0)
         for url_id in df['url_id'].values.tolist():
-            yield Request(self.base_url.format(url_id))
+            yield Request(self.base_url.format(url_id), meta={"url_id": url_id})
 
     def parse(self, response):
         file = response.xpath(r'//*[@id="fileList"]/tbody/tr/td[1]/text()').extract()
@@ -41,8 +42,13 @@ class EmergencyPlanSpider(scrapy.Spider):
             p = re.findall(".*filedown\(\\'(.*)\\'.*", url[i])
             urls.append(self.file_url.format(p[0]))
             files.append(p[0] + "." + file[i].split(".")[-1])
+            item = EmergencyPlanItem()
+            item["dict_data"] = {"url_id": response.meta.get("url_id"),
+                                 "filename": file[i],
+                                 "fileId": p[0]}
+            yield item
 
-        item = EmergencyPlanItem()
-        item['file_urls'] = urls
-        item['files'] = files
-        yield item
+        item_file = EmergencyPlanFileItem()
+        item_file['file_urls'] = urls
+        item_file['files'] = files
+        yield item_file
