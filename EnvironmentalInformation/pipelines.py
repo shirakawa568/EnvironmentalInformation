@@ -16,7 +16,8 @@ from scrapy.pipelines.images import ImagesPipeline
 
 from EnvironmentalInformation.common.tools import get_root_path, add_sheet
 from EnvironmentalInformation.items import OtherInformationRewardItem, EnvironmentalReportItem, \
-    InformationDisclosureItem, InformationDisclosureDetailItem, CleanerProductionItem, LicenseInformationItem
+    InformationDisclosureItem, InformationDisclosureDetailItem, CleanerProductionItem, LicenseInformationItem, \
+    EmergencyPlanItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 
@@ -298,6 +299,33 @@ class AdministrativeLicensingPipeline:
         if self.df_OTHER is not None:
             add_sheet(get_root_path('EnvironmentalInformation'), self.filename, "其他行政许可事项",
                       self.df_OTHER)
+        # 爬虫结束
+        logger.info("save complete")
+
+
+class EmergencyPlanPipeline:
+    filename = "EmergencyPlan.xlsx"
+
+    def __init__(self):
+        self.df = None
+        self.writer = pandas.ExcelWriter(get_root_path('EnvironmentalInformation') + self.filename)
+
+    def open_spider(self, spider):
+        logger.info('spider will starting')
+
+    def process_item(self, item, spider):
+        if isinstance(item, EmergencyPlanItem):
+            if self.df is None:
+                cols = item["dict_data"].keys()
+                self.df = pandas.DataFrame(columns=cols)
+            s = pandas.Series(item["dict_data"])
+            self.df = self.df.append(s, ignore_index=True)
+
+    def close_spider(self, spider):
+        logger.info('spider is ending')
+        # 覆盖保存
+        self.df.to_excel(self.writer, sheet_name='应急方案', index=False)
+        self.writer.save()
         # 爬虫结束
         logger.info("save complete")
 
