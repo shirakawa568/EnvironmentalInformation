@@ -64,7 +64,7 @@ class CleanerProductionSpider(scrapy.Spider):
 
     def parse_subpage(self, response):
 
-        if response.status == 200 and response.text is not '':
+        if response.status == 200 and response.text != '':
             crop_name = response.xpath(r"/html/body/div[2]/div[2]/div[1]/div[1]/div/text()").get().strip()
             crop_id = response.xpath(r"/html/body/div[2]/div[2]/div[1]/div[5]/div/text()").get().strip()
             double = response.xpath(r"/html/body/div[2]/div[1]").get()

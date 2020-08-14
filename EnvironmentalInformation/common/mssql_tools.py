@@ -34,9 +34,15 @@ class DBUtil(object):
         return getattr(self.Base.classes, table_name)
 
     def insert(self, schema, table_name, list_data):
-        table = self._table_execute(schema, table_name)
-        self._session.execute(table.__table__.insert(), list_data)
-        self._session.commit()
+        try:
+            table = self._table_execute(schema, table_name)
+            result = self._session.execute(table.__table__.insert(), list_data)
+            self._session.commit()
+        except Exception as e:
+            print('error:', e)
+            self._session.rollback()
+        else:
+            return result
 
     def execute_sql(self, sql_str, **ft):
         """
