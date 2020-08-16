@@ -19,9 +19,9 @@ class DBUtil(object):
 
     def _table_query(self, schema, table_name):
         """ 避免重复加载，同时只是用execute时，不加载以下内容 """
-        if self.__base_class is None:
-            self.__base_class = automap_base()
-            self.__base_class.prepare(self._engine, schema=schema, reflect=True)
+        # if self.__base_class is None:
+        self.__base_class = automap_base()
+        self.__base_class.prepare(self._engine, schema=schema, reflect=True)
         if hasattr(self.__base_class.classes, table_name):
             table = getattr(self.__base_class.classes, table_name)
             return self._session.query(table)
@@ -34,6 +34,13 @@ class DBUtil(object):
         return getattr(self.Base.classes, table_name)
 
     def insert(self, schema, table_name, list_data):
+        """
+        插入多条数据
+        :param schema:
+        :param table_name:
+        :param list_data:
+        :return:
+        """
         try:
             table = self._table_execute(schema, table_name)
             result = self._session.execute(table.__table__.insert(), list_data)
@@ -43,6 +50,16 @@ class DBUtil(object):
             self._session.rollback()
         else:
             return result
+
+    def update_by_dict(self, schema, table_name, dict_data, ft):
+        try:
+            table = self._table_query(schema, table_name).filter_by(**ft).first()
+            for key, value in dict_data.items():
+                setattr(table, key, value)
+            self._session.commit()
+        except Exception as e:
+            print('error:', e)
+            self._session.rollback()
 
     def execute_sql(self, sql_str, **ft):
         """

@@ -20,6 +20,9 @@ from EnvironmentalInformation.items import OtherInformationRewardItem, Environme
     EmergencyPlanItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
+from db_script.update_device_data import update_device_baseInfo, update_deviceData_indexes
+from db_script.update_emergency_plan import update_emergency_plan
+from db_script.update_tab_company_baseInfo import update_company_baseInfo
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +59,7 @@ class EnterprisesPipeline:
         logger.info("save complete")
 
 
+# 企业详情
 class EnterprisesDetailPipeline:
     def __init__(self):
         self.df = None
@@ -70,6 +74,8 @@ class EnterprisesDetailPipeline:
                 self.df = pandas.DataFrame(columns=cols)
             s = pandas.Series(item['dict_detail'])
             self.df = self.df.append(s, ignore_index=True)
+            # 保存至数据库
+            update_company_baseInfo(item['dict_detail'])
             self.count += 1
             print(f"完成第{self.count}条")
         return item
@@ -82,6 +88,7 @@ class EnterprisesDetailPipeline:
         logger.info("save complete")
 
 
+# 排污信息
 class PollutionInfoPipeline:
     def __init__(self):
         self.df_pfk = None
@@ -116,22 +123,14 @@ class PollutionInfoPipeline:
             for col in item['dict_poll_project']:
                 s = pandas.Series(col)
                 self.df_project = self.df_project.append(s, ignore_index=True)
+                update_device_baseInfo(col)  # 更新处理设施基础信息表
+                update_deviceData_indexes(col)  # 更新处理设施数据类型表
                 self.counts[1] += 1
             logger.info(f"{self.counts[1]}\t收到Item\t{len(item['dict_poll_project'])}条排放项目")
             return item
         # 处理排放总量信息
         if item['dict_pfzl'] is not None:
             return item
-        # 处理厂区图
-        # if item['images'] is not None:
-        #     if self.df_images is None:
-        #         cols: dict = item['images'][0].keys()
-        #         self.df_images = pandas.DataFrame(columns=cols)
-        #     for col in item['images']:
-        #         s = pandas.Series(col)
-        #         self.df_images = self.df_images.append(s, ignore_index=True)
-        #         self.counts[2] += 1
-        #     return item
         return item
 
     def close_spider(self, spider):
@@ -149,6 +148,7 @@ class PollutionInfoPipeline:
         logger.info("save complete")
 
 
+# 图片下载（厂区图）
 class DownloadImagesPipeline(ImagesPipeline):
     # 主要重写下面三个父类方法
     def get_media_requests(self, item, info):
@@ -164,6 +164,7 @@ class DownloadImagesPipeline(ImagesPipeline):
         return item  # 返回给下一个即将被执行的管道类
 
 
+# 防治污染设施
 class PollutionControlFacilitiesPipeline:
     def __init__(self):
         self.df_product = None
@@ -230,7 +231,7 @@ class PollutionControlFacilitiesPipeline:
         logger.info("save complete")
 
 
-# 排污许可、建设项目、???、其它许可
+# 行政许可：排污许可、建设项目、???、其它许可
 class AdministrativeLicensingPipeline:
     def __init__(self):
         self.df_PWXK = None
@@ -303,6 +304,7 @@ class AdministrativeLicensingPipeline:
         logger.info("save complete")
 
 
+# 应急预案
 class EmergencyPlanPipeline:
     filename = "EmergencyPlan.xlsx"
 
@@ -320,6 +322,8 @@ class EmergencyPlanPipeline:
                 self.df = pandas.DataFrame(columns=cols)
             s = pandas.Series(item["dict_data"])
             self.df = self.df.append(s, ignore_index=True)
+            update_emergency_plan(item["dict_data"])
+            return item
 
     def close_spider(self, spider):
         logger.info('spider is ending')
@@ -342,7 +346,7 @@ class EmergencyPlanFilePipeline(FilesPipeline):
         return request.meta['filename']
 
 
-#
+# 其他信息
 class OtherInformationPipeline:
     filename = "OtherInformation.xlsx"
 
@@ -410,6 +414,7 @@ class OtherInformationPipeline:
         logger.info("save complete")
 
 
+# 监测数据
 class MonitoringDataPipeline:
     filename = "MonitoringData.xlsx"
 
@@ -467,6 +472,7 @@ class MonitoringDataPipeline:
         logger.info("save complete")
 
 
+# 废水废弃手工监测记录
 class ManualMonitoringPipeline:
     filename = "ManualMonitoring.xlsx"
 
@@ -546,6 +552,7 @@ class EnvironmentalReportPipeline:
         logger.info("save complete")
 
 
+# 环评事中事后信息公开爬虫开始
 class InformationDisclosurePipeline:
     filename = "InformationDisclosure.xlsx"
 
@@ -563,7 +570,7 @@ class InformationDisclosurePipeline:
             s = pandas.Series(item)
             self.df = self.df.append(s, ignore_index=True)
         if isinstance(item, InformationDisclosureDetailItem):
-            # 处理详情列表
+            # 处理详情列表，每个Item为一条记录
             if self.df_detail is None:
                 titles = item["dict_data"].keys()
                 self.df_detail = pandas.DataFrame(columns=titles)
@@ -714,7 +721,7 @@ class LicenseInformationPipeline:
         self.writer.save()
         # 追加sheet
         if self.df_detail is not None:
-            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="企业子页面",
+            add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="企业详情",
                       dataframe=self.df_detail)
 
         logger.info("save complete")

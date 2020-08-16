@@ -108,6 +108,12 @@ class InformationDisclosureSpider(scrapy.Spider):
                         dict_file["file_url"] = self.fileDown.format(file_id)
                         dict_file["project_id"] = response.meta.get("project_id")
                         list_files.append(dict_file)
+            # 获取其他关键信息
+            dict_data["建设单位"] = response.xpath(r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[2]/div[2]/text()').get()
+            dict_data["环评批文文号"] = response.xpath(r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[9]/div[2]/text()').get()
+            dict_data["环评项目登记号"] = response.xpath(r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[8]/div[2]/text()').get()
+
+
             # 详细表最后一列追加id，方便对应关系
             dict_data["project_id"] = response.meta.get("project_id")
 

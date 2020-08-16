@@ -31,8 +31,8 @@ class EmergencyPlanSpider(scrapy.Spider):
 
     def start_requests(self):
         df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="企业详细信息", header=0)
-        for url_id in df['url_id'].values.tolist():
-            yield Request(self.base_url.format(url_id), meta={"url_id": url_id})
+        for url_id, stWrybh in df[['url_id', "污染源编码"]].values.tolist():
+            yield Request(self.base_url.format(url_id), meta={"url_id": url_id, "stWrybh": stWrybh})
 
     def parse(self, response):
         file = response.xpath(r'//*[@id="fileList"]/tbody/tr/td[1]/text()').extract()
@@ -44,6 +44,7 @@ class EmergencyPlanSpider(scrapy.Spider):
             files.append(p[0] + "." + file[i].split(".")[-1])
             item = EmergencyPlanItem()
             item["dict_data"] = {"url_id": response.meta.get("url_id"),
+                                 "stWrybh": response.meta.get("stWrybh"),
                                  "filename": file[i],
                                  "fileId": p[0]}
             yield item
