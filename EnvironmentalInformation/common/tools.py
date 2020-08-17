@@ -48,4 +48,4 @@ def add_sheet(path, file_name, sheet_name, dataframe):
 
 if __name__ == '__main__':
     df = pandas.DataFrame(columns=["aaa"])
-    print(add_sheet(r"E:\_Project\Project_2020\EnvironmentalInformation\\", "Enterprises.xlsx", "企业详细信息", df))
+    print(add_sheet(r"/\\", "Enterprises.xlsx", "企业详细信息", df))
