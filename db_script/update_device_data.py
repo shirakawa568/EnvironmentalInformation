@@ -33,11 +33,13 @@ def check_monitor():
     pass
 
 
+# 更新处理设施基础信息表
 def update_device_baseInfo(row):
     companyId = uuid.uuid5(uuid.NAMESPACE_DNS, row.get('stWryCode'))
     deviceId = uuid.uuid5(companyId, row.get('stSitecode'))
     obj = db.first(schema=schema, table_name=tablename, ft={"deviceId": deviceId})
     deviceType = row["stType"]
+    # 获取以及更新处理设施类型表
     deviceType = get_id_by_insert(db, schema, "dict_deviceType", "deviceTypeName", deviceType, call_key="deviceTypeId")
     # 0：监测计划，1：手工监测值，2：自动监测值，3：环保管家日常巡
     _str = row["stJcff"]
@@ -78,7 +80,7 @@ def update_device_baseInfo(row):
         db.update_by_dict(schema, tablename, items, ft={"deviceId": deviceId})
 
 
-# 动态更新处理设施数据字典表
+# 动态更新处理设施数据字典表  todo:dict_pollution???
 def update_deviceData_indexes(row):
     # 根据数据名，查询表中是否存在
     name = row.get("stProject")

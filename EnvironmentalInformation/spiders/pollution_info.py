@@ -49,8 +49,8 @@ class PollutionInfoSpider(scrapy.Spider):
     def start_requests(self):
         # 厂区图
         df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
-        for url_id in df['url_id'].values.tolist():
-            yield Request(self.url_image.format(url_id), callback=self.parse_img)
+        # for url_id in df['url_id'].values.tolist():
+        #     yield Request(self.url_image.format(url_id), callback=self.parse_img)
         # 获取企事业单位urlId
         df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="企业详细信息", header=0)
         for wryCode in df['污染源编码'].values.tolist():
