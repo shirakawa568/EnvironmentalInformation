@@ -79,21 +79,55 @@ def update_device_baseInfo(row):
         # 写入数据库
         db.update_by_dict(schema, tablename, items, ft={"deviceId": deviceId})
 
-
-# 动态更新处理设施数据字典表  todo:dict_pollution???
-def update_deviceData_indexes(row):
     # 根据数据名，查询表中是否存在
     name = row.get("stProject")
-    obj = db.first(schema, "dict_deviceData_indexes", {"name": name})
+    obj = db.first(schema, "dict_pollution", {"pollutionName": name})
     if obj is None:
-        uid = uuid.uuid5(uuid.NAMESPACE_DNS, name)
-        deviceType = get_id_by_insert(db, schema, "dict_deviceType", "deviceTypeName", row["stType"],
-                                      call_key="deviceTypeId")
         item = {
-            "ID": uid,
-            "name": name,
-            "typeId": deviceType,
+            "pollutionName": name,
             "state": 1,
             "unit": row.get("jcxm_dw"),
         }
-        db.insert(schema, "dict_deviceData_indexes", [item])
+        db.insert(schema, "dict_pollution", [item])
+
+    # 更具设施ID与污染源字典表id，更新关联表
+    pollutionCode = db.first(schema, "dict_pollution", {"pollutionName": name}).pollutionCode
+    uid = uuid.uuid5(deviceId, name)
+    if not db.first(schema, "ref_deivceDataMain", {"Id": uid}):
+        item = {
+            "Id": uid,
+            "deviceId": deviceId,
+            "pollutionCode": pollutionCode
+        }
+        db.insert(schema, "ref_deivceDataMain", [item])
+
+
+# 动态更新处理设施数据字典表  dict_pollution
+def update_deviceData_indexes(row):
+    # 根据数据名，查询表中是否存在
+    name = row.get("stProject")
+    obj = db.first(schema, "dict_pollution", {"pollutionName": name})
+    if obj is None:
+        item = {
+            "pollutionName": name,
+            "state": 1,
+            "unit": row.get("jcxm_dw"),
+        }
+        db.insert(schema, "dict_pollution", [item])
+
+
+def update_ref_device_pollution(row):
+    companyId = uuid.uuid5(uuid.NAMESPACE_DNS, row.get('stWryCode'))
+    deviceId = uuid.uuid5(companyId, row.get('stSitecode'))
+    name = row.get("stProject")
+    obj = db.first(schema, "dict_pollution", {"pollutionName": name})
+    if obj:
+        pollutionCode = obj.pollutionCode
+        uid = uuid.uuid5(deviceId, name)
+        item = {
+            "Id": uid,
+            "deviceId": deviceId,
+            "pollutionCode": pollutionCode
+        }
+        if not db.first(schema, "ref_deivceDataMain", {"Id": uid}):
+            db.insert(schema, "ref_deivceDataMain", [item])

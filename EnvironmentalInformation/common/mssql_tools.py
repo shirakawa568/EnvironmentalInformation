@@ -1,3 +1,5 @@
+import asyncio
+from sqlalchemy_aio import ASYNCIO_STRATEGY
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
@@ -19,7 +21,8 @@ class DBUtil(object):
 
     def _table_query(self, schema, table_name):
         """ 避免重复加载，同时只是用execute时，不加载以下内容 """
-        # if self.__base_class is None:
+        # todo:尝试判断输入的架构和已获取过的架构是否一致，避免多次重复读取映射
+        # if self.__base_class.__name__ is None:
         self.__base_class = automap_base()
         self.__base_class.prepare(self._engine, schema=schema, reflect=True)
         if hasattr(self.__base_class.classes, table_name):
@@ -28,7 +31,7 @@ class DBUtil(object):
         else:
             raise KeyError(f"未搜寻到表: {table_name}")
 
-    def _table_execute(self, schema, table_name, ):
+    def _table_execute(self, schema, table_name):
         """获取单个表对象"""
         self.Base.prepare(self._engine, schema=schema, reflect=True)
         return getattr(self.Base.classes, table_name)
@@ -123,14 +126,18 @@ class DBUtil(object):
 
 if __name__ == '__main__':
     # conf = "mysql+pymysql://用户名:密码@服务器:3306/数据库?charset=utf8"
-    # conf = "mssql+pymssql://sa:Imanity.568312@192.168.31.11/Environment"
-    # db = DBUtil(conf)
-    # table = db.table_execute("Common", "tab_company_baseInfo")
+    conf = "mssql+pymssql://sa:Imanity.568312@127.0.0.1/Environment"
+    db = DBUtil(conf)
+    # table = db.all("Common", "tab_company_baseInfo")
+    # print(table)
+
+    loop = asyncio.get_event_loop()
+    table = loop.run_until_complete(db.all("Common", "tab_company_baseInfo"))
+    print(table)
     # # namespace = uuid.UUID("qdasdsad")
     # uid = uuid.uuid5(uuid.NAMESPACE_DNS, "222222")
     # list_data = list()
     # list_data.append({"companyId": uid, "companyName": "222222"})
     # db._session.execute(table.__table__.insert(), list_data)
     # db._session.commit()
-    # db.close()
-    pass
+    db.close()

@@ -20,8 +20,9 @@ from EnvironmentalInformation.items import OtherInformationRewardItem, Environme
     EmergencyPlanItem
 from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetailSpider
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
-from db_script.update_device_data import update_device_baseInfo, update_deviceData_indexes
+from db_script.update_device_data import update_device_baseInfo, update_deviceData_indexes, update_ref_device_pollution
 from db_script.update_emergency_plan import update_emergency_plan
+from db_script.update_monitoringData import update_monitoringData
 from db_script.update_tab_company_baseInfo import update_company_baseInfo
 
 logger = logging.getLogger(__name__)
@@ -124,7 +125,8 @@ class PollutionInfoPipeline:
                 s = pandas.Series(col)
                 self.df_project = self.df_project.append(s, ignore_index=True)
                 update_device_baseInfo(col)  # 更新处理设施基础信息表
-                update_deviceData_indexes(col)  # 更新处理设施数据类型表
+                # update_deviceData_indexes(col)  # 更新处理设施数据类型表
+                # update_ref_device_pollution(col)  # 更新处理设施与污染源类型关联表
                 self.counts[1] += 1
             logger.info(f"{self.counts[1]}\t收到Item\t{len(item['dict_poll_project'])}条排放项目")
             return item
@@ -438,6 +440,7 @@ class MonitoringDataPipeline:
         for col in item['dict_data']:
             s = pandas.Series(col)
             self.df[item["title"]] = self.df[item["title"]].append(s, ignore_index=True)
+            update_monitoringData(col)
             if self.counts.get(item["title"]) is None:
                 self.counts[item["title"]] = 1
             else:
