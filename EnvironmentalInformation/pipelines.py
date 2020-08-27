@@ -440,7 +440,8 @@ class MonitoringDataPipeline:
         for col in item['dict_data']:
             s = pandas.Series(col)
             self.df[item["title"]] = self.df[item["title"]].append(s, ignore_index=True)
-            update_monitoringData(col)
+            # update_monitoringData(col, item.get("wryCode"))
+            # 统计不同表格获取数据的量
             if self.counts.get(item["title"]) is None:
                 self.counts[item["title"]] = 1
             else:
@@ -453,8 +454,12 @@ class MonitoringDataPipeline:
         logger.info(f"爬取内容条数：{self.counts}")
         logger.info(f"Item总数：{self.item_count}")
         # 覆盖保存:废水手工监测记录
-        self.df["waterHand"].to_excel(self.writer, sheet_name='废水手工监测记录', index=False)
-        self.writer.save()
+        if self.df["waterHand"] is None:
+            pandas.DataFrame().to_excel(self.writer, sheet_name='空', index=False)
+            self.writer.save()
+        else:
+            self.df["waterHand"].to_excel(self.writer, sheet_name='废水手工监测记录', index=False)
+            self.writer.save()
         # 追加保存:废气手工监测记录
         if self.df["wasteHand"] is not None:
             add_sheet(get_root_path('EnvironmentalInformation'), self.filename, sheet_name="废气手工监测记录",

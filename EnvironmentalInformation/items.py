@@ -84,6 +84,8 @@ class MonitoringDataItem(scrapy.Item):
     dict_data = scrapy.Field()
     title = scrapy.Field()
     url_id = scrapy.Field()
+    wryCode = scrapy.Field()
+
 
 
 class ManualMonitoringItem(scrapy.Item):

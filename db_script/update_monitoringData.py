@@ -27,16 +27,21 @@ tab_ref = "ref_deivceDataMain"
 db = DBUtil(settings().conf)
 
 
-def update_monitoringData(row):
-
+def update_monitoringData(row, title, wryCode):
     # 数据的唯一标识
     dataId = uuid.uuid4()
 
     # 计算deviceId
-    companyId = uuid.uuid5(uuid.NAMESPACE_DNS, row.get('stWryCode'))
-    deviceId = uuid.uuid5(companyId, row.get('stJcdCode'))
+    companyId = uuid.uuid5(uuid.NAMESPACE_DNS, wryCode)
+    # 根据处理设施名称生成deviceId
+    d_id = row.get('stJcdCode', None)
+    if d_id == None:  # 如果没有获取到，则换一种列表明再获取
+        d_id = row.get('FACTORNAME', None)
+    deviceId = uuid.uuid5(companyId, d_id)
     # 计算污染源类型与处理设施类型关联表ID
-    name = row.get("stJcxm")
+    name = row.get("stJcxm", None)
+    if name == None:
+        name = row.get("stJcxm", None)
     pollutantId = uuid.uuid5(deviceId, name)
     # 创建数据集
     item = {
@@ -50,5 +55,3 @@ def update_monitoringData(row):
     print(item)
     result = db.insert(schema, tab_data, [item])
     print(result)
-
-

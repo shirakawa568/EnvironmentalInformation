@@ -1,5 +1,4 @@
 import asyncio
-from sqlalchemy_aio import ASYNCIO_STRATEGY
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker

@@ -1,9 +1,13 @@
 """
 环评事中事后信息公开
 
+修改为更具已有的企事业单位的名称查询项目，获取项目的详情页，过滤掉无用的项目数据，增加爬虫的效率
+
 """
 import datetime
+import json
 
+import pandas
 import scrapy
 
 from EnvironmentalInformation.common.tools import get_root_path
@@ -35,7 +39,13 @@ class InformationDisclosureSpider(scrapy.Spider):
     fileDown = "https://xxgk.eic.sh.cn/xhyf/common/filedown1.do?fileId={}"
 
     def start_requests(self):
-        yield scrapy.Request(url=self.jsxmxxgkInfo_main, callback=self.parse_information_disclosure_total)
+        # 获取企业名称，逐条进行搜索，寻找企业所拥有的项目
+        df = pandas.read_excel(self.root_path + 'Enterprises.xlsx', sheet_name="Sheet1", header=0)
+        for name in df['name'].values.tolist():
+            yield scrapy.FormRequest(url=self.jsxmxxgkInfo_main, formdata={
+                "selValue": name,
+                "selFieldShowStr": "建设单位",
+            }, callback=self.parse_information_disclosure_main)
 
     def parse_information_disclosure_total(self, response):
         # 获取总页数，处理分页请求
@@ -109,10 +119,12 @@ class InformationDisclosureSpider(scrapy.Spider):
                         dict_file["project_id"] = response.meta.get("project_id")
                         list_files.append(dict_file)
             # 获取其他关键信息
-            dict_data["建设单位"] = response.xpath(r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[2]/div[2]/text()').get()
-            dict_data["环评批文文号"] = response.xpath(r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[9]/div[2]/text()').get()
-            dict_data["环评项目登记号"] = response.xpath(r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[8]/div[2]/text()').get()
-
+            dict_data["建设单位"] = response.xpath(
+                r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[2]/div[2]/text()').get()
+            dict_data["环评批文文号"] = response.xpath(
+                r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[9]/div[2]/text()').get()
+            dict_data["环评项目登记号"] = response.xpath(
+                r'//*[@id="wrapper"]/div[3]/div[3]/div[2]/div[2]/div[8]/div[2]/text()').get()
 
             # 详细表最后一列追加id，方便对应关系
             dict_data["project_id"] = response.meta.get("project_id")
