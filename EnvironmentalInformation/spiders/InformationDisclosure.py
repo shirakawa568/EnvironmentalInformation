@@ -45,7 +45,7 @@ class InformationDisclosureSpider(scrapy.Spider):
             yield scrapy.FormRequest(url=self.jsxmxxgkInfo_main, formdata={
                 "selValue": name,
                 "selFieldShowStr": "建设单位",
-            }, callback=self.parse_information_disclosure_main)
+            }, callback=self.parse_information_disclosure_main, meta={"compName": name})
 
     def parse_information_disclosure_total(self, response):
         # 获取总页数，处理分页请求
@@ -59,7 +59,7 @@ class InformationDisclosureSpider(scrapy.Spider):
                 "from": "jsxm",
             }
             yield scrapy.FormRequest(url=self.jsxmxxgkInfo_main, formdata=data,
-                                     callback=self.parse_information_disclosure_main)
+                                     callback=self.parse_information_disclosure_main, meta=response.meta)
 
     def parse_information_disclosure_main(self, response):
         # 获取到一页数据表，提交Item
@@ -84,7 +84,7 @@ class InformationDisclosureSpider(scrapy.Spider):
             yield item
             # 请求每一条信息的子页面
             yield scrapy.Request(url=self.subPage.format(l_row[5]), callback=self.parse_subpage,
-                                 meta={"project_id": l_row[5]})
+                                 meta={"project_id": l_row[5], "compName": response.meta["compName"]})
 
     def parse_subpage(self, response):
         # 处理子页面
@@ -117,6 +117,7 @@ class InformationDisclosureSpider(scrapy.Spider):
                         dict_file["file_name"] = file_name
                         dict_file["file_url"] = self.fileDown.format(file_id)
                         dict_file["project_id"] = response.meta.get("project_id")
+                        dict_file["compName"] = response.meta.get("compName")
                         list_files.append(dict_file)
             # 获取其他关键信息
             dict_data["建设单位"] = response.xpath(

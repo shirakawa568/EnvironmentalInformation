@@ -22,6 +22,7 @@ from EnvironmentalInformation.spiders.enterprises_detail import EnterprisesDetai
 from EnvironmentalInformation.spiders.enterprises_info import EnterprisesInfoSpider
 from db_script.update_device_data import update_device_baseInfo, update_deviceData_indexes, update_ref_device_pollution
 from db_script.update_emergency_plan import update_emergency_plan
+from db_script.update_informationDisclosure import update_information_disclosure
 from db_script.update_monitoringData import update_monitoringData
 from db_script.update_tab_company_baseInfo import update_company_baseInfo
 
@@ -591,6 +592,8 @@ class InformationDisclosurePipeline:
             for row in item["list_files"]:
                 s = pandas.Series(row)
                 self.df_files = self.df_files.append(s, ignore_index=True)
+                # 文件信息入库
+                update_information_disclosure(row)
         return item
 
     def close_spider(self, spider):
